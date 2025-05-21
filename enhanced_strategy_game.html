@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mission Control: Strategic Launch Simulation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #e2e8f0;
+      margin: 0;
+      padding: 0;
+    }
+    .hidden { display: none; }
+    .centered {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    .team-container { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+  <!-- Team Setup Screen -->
+  <div id="team-setup" class="centered">
+    <h1 class="text-3xl font-bold mb-4 text-cyan-300">Enter Your Team Name</h1>
+    <input id="teamNameInput" type="text" placeholder="Team Alpha" class="p-2 rounded text-black mb-4 w-1/2"/>
+    <button onclick="startGame()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded">
+      Launch Mission Control
+    </button>
+  </div>
+
+  <!-- Main Game Screen -->
+  <div id="game-screen" class="hidden p-6">
+    <h2 class="text-2xl font-bold mb-2 text-cyan-300">Mission Control Dashboard</h2>
+    <p class="mb-4">Team: <span id="displayTeamName" class="font-semibold text-yellow-300"></span></p>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <h3 class="font-bold mb-2">Add Mission</h3>
+        <input id="missionName" placeholder="Mission Name" class="p-2 w-full rounded text-black mb-2"/>
+        <input id="missionProgress" type="number" min="0" max="100" placeholder="Progress %" class="p-2 w-full rounded text-black mb-2"/>
+        <button onclick="addMission()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full">Add Mission</button>
+      </div>
+      <div>
+        <h3 class="font-bold mb-2">Mission List</h3>
+        <div id="missionList" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio -->
+  <audio id="clickSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+
+  <script>
+    let teamName = '';
+    const teamMissions = {};
+
+    function startGame() {
+      const input = document.getElementById('teamNameInput').value.trim();
+      if (!input) {
+        alert("Please enter a team name.");
+        return;
+      }
+      teamName = input;
+      document.getElementById('displayTeamName').textContent = teamName;
+      document.getElementById('team-setup').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+      document.getElementById('clickSound').play();
+      if (!teamMissions[teamName]) {
+        teamMissions[teamName] = [];
+      }
+      renderMissions();
+    }
+
+    function addMission() {
+      const name = document.getElementById('missionName').value.trim();
+      const progress = parseInt(document.getElementById('missionProgress').value);
+      if (!name || isNaN(progress) || progress < 0 || progress > 100) {
+        alert("Please enter valid mission data.");
+        return;
+      }
+      teamMissions[teamName].push({ name, progress });
+      document.getElementById('missionName').value = '';
+      document.getElementById('missionProgress').value = '';
+      document.getElementById('successSound').play();
+      renderMissions();
+    }
+
+    function renderMissions() {
+      const container = document.getElementById('missionList');
+      container.innerHTML = '';
+      const missions = teamMissions[teamName];
+      if (!missions.length) {
+        container.innerHTML = '<p class="text-gray-400">No missions yet. Add one above.</p>';
+        return;
+      }
+      missions.forEach((m, index) => {
+        const barWidth = m.progress + '%';
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-slate-700 rounded-lg text-white';
+        div.innerHTML = \`
+          <p class="font-bold">\${index + 1}. \${m.name} - <span class="text-green-400">\${m.progress}%</span></p>
+          <div class="w-full bg-gray-600 rounded-full h-3 mt-2">
+            <div class="bg-green-500 h-3 rounded-full" style="width: \${barWidth}"></div>
+          </div>
+        \`;
+        container.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>
